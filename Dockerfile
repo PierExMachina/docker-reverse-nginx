@@ -1,8 +1,8 @@
-FROM xataz/alpine:3.7
+FROM pierexmachina/alpine:3.7
 
 LABEL Description="reverse with nginx based on alpine" \
       tags="latest mainline 1.13.7 1.13 1.0.1 1.0 1" \
-      maintainer="xataz <https://github.com/xataz>" \
+      maintainer="pierexmachina <https://github.com/pierexmachina>" \
       build_ver="2017120901"
 
 ARG NGINX_VER=1.13.7
@@ -38,8 +38,9 @@ ARG NGINX_CONF="--prefix=/nginx \
                 --without-http_empty_gif_module \
                 --without-http_browser_module"
 ARG NGINX_3RD_PARTY_MODULES="--add-module=/tmp/headers-more-nginx-module \
-                            --add-module=/tmp/nginx-ct \
-                            --add-module=/tmp/ngx_brotli"
+                            --add-module=/tmp/nginx-ct " 
+#\
+#                            --add-module=/tmp/ngx_brotli"
 ARG OPENSSL_VER=1.1.0g
 
 RUN export BUILD_DEPS="build-base \
@@ -76,21 +77,21 @@ RUN export BUILD_DEPS="build-base \
     # Download source
     && git clone https://github.com/openresty/headers-more-nginx-module --depth=1 /tmp/headers-more-nginx-module \
     && git clone https://github.com/bagder/libbrotli --depth=1 /tmp/libbrotli \
-    && git clone https://github.com/google/ngx_brotli --depth=1 /tmp/ngx_brotli \
+#    && git clone https://github.com/google/ngx_brotli --depth=1 /tmp/ngx_brotli \
     && wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz -O /tmp/nginx-${NGINX_VER}.tar.gz \
     && wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz.asc -O /tmp/nginx-${NGINX_VER}.tar.gz.asc \
     && wget -q https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz -O /tmp/openssl-${OPENSSL_VER}.tar.gz \
     && git clone https://github.com/grahamedgecombe/nginx-ct --depth=1 /tmp/nginx-ct \
     # Brotli
-    && cd /tmp/libbrotli \
-    && ./autogen.sh \
-    && ./configure \
-    && mkdir brotli/c/tools/.deps \
-    && touch brotli/c/tools/.deps/brotli-brotli.Po \
-    && make -j ${NB_CORES} \
-    && make install \
-    && cd /tmp/ngx_brotli \
-    && git submodule update --init \
+ #   && cd /tmp/libbrotli \
+ #   && ./autogen.sh \
+ #   && ./configure \
+ #   && mkdir brotli/c/tools/.deps \
+ #   && touch brotli/c/tools/.deps/brotli-brotli.Po \
+ #   && make -j ${NB_CORES} \
+ #   && make install \
+ #   && cd /tmp/ngx_brotli \
+ #   && git submodule update --init \
     # OpenSSL
     && cd /tmp \
     && tar xzf openssl-${OPENSSL_VER}.tar.gz \
@@ -109,7 +110,7 @@ RUN export BUILD_DEPS="build-base \
     && ./configure ${NGINX_CONF} ${NGINX_3RD_PARTY_MODULES} \
                         --with-cc-opt="-O3 -fPIE -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -Wno-deprecated-declarations" \
                         --with-ld-opt="-lrt -ljemalloc -Wl,-Bsymbolic-functions -Wl,-z,relro" \
-                        --with-openssl-opt='no-async enable-ec_nistp_64_gcc_128 no-shared no-ssl2 no-ssl3 no-comp no-idea no-weak-ssl-ciphers -DOPENSSL_NO_HEARTBEATS -O3 -fPIE -fstack-protector-strong -D_FORTIFY_SOURCE=2' \
+                        --with-openssl-opt='no-async no-shared no-ssl2 no-ssl3 no-comp no-idea no-weak-ssl-ciphers -DOPENSSL_NO_HEARTBEATS -O3 -fPIE -fstack-protector-strong -D_FORTIFY_SOURCE=2' \
                         --with-openssl=/tmp/openssl-${OPENSSL_VER} \
     && make -j ${NB_CORES} \
     && make install \
